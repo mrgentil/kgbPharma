@@ -1,34 +1,17 @@
 <?php
 
-
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
-//Route::get('/', function () {
-//    return view('layouts.main');
-//});
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\UserController;
 
 Auth::routes(['register' => false]);
 
-Route::group(['middleware' => ['auth:sanctum', 'verified']], function (){
+Route::group(['middleware' => ['auth:sanctum', 'verified']], function () {
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 
-    Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
-     //Route Users
-     Route::resource('users', App\Http\Controllers\UserController::class);
-
-
+    // Routes Users
+    Route::resource('users', UserController::class)->except(['show']);
+    Route::post('/users/{user}/suspend', [UserController::class, 'suspend'])
+        ->name('users.suspend');
 });
-
