@@ -2,10 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Supplier;
-use App\Models\Medicament;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Medicament;
+use App\Models\Supplier;
+use Illuminate\Support\Str;
+use Faker\Factory as Faker;
 
 class MedicamentSeeder extends Seeder
 {
@@ -14,11 +15,36 @@ class MedicamentSeeder extends Seeder
      */
     public function run(): void
     {
-        $fournisseurs = Supplier::all();
+        $faker = Faker::create();
 
-        Medicament::factory()->count(20)->make()->each(function ($medicament) use ($fournisseurs) {
-            $medicament->fournisseur_id = $fournisseurs->random()->id;
-            $medicament->save();
-        });
+        // Créer 3 fournisseurs
+        $suppliers = collect();
+        for ($i = 1; $i <= 3; $i++) {
+            $suppliers->push(Supplier::create([
+                'nom' => 'Fournisseur ' . $i,
+                'telephone' => $faker->phoneNumber,
+                'email' => $faker->unique()->safeEmail,
+            ]));
+        }
+
+        $formes = ['Comprimé', 'Sirop', 'Gélule', 'Pommade', 'Injectable'];
+        $dosages = ['250mg', '500mg', '100mg', '5ml', '10ml'];
+
+        for ($i = 1; $i <= 50; $i++) {
+            $stock = rand(0, 20);
+            $expiration = now()->addDays(rand(-30, 365)); // date entre il y a 30 jours et dans 1 an
+
+            Medicament::create([
+                'nom' => 'Medicament ' . Str::random(5),
+                'forme' => $faker->randomElement($formes),
+                'dosage' => $faker->randomElement($dosages),
+                'prix_achat' => $faker->randomFloat(2, 1, 100),
+                'prix_vente' => $faker->randomFloat(2, 5, 150),
+                'stock' => $stock,
+                'stock_min' => 5,
+                'expiration' => $expiration,
+                'supplier_id' => $suppliers->random()->id,
+            ]);
+        }
     }
 }

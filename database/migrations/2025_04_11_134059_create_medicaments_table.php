@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('stock')->default(0);
             $table->integer('stock_min')->default(5);
             $table->date('expiration');
-            $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
+            $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('cascade');
             $table->timestamps();
         });
     }

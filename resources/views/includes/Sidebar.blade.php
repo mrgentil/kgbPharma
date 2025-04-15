@@ -44,8 +44,12 @@
                     </a>
 
                 </li>
-
-
+                <li class="nav-item">
+                    <a class="nav-link menu-link" href="{{ route('medicaments.index') }}" role="button">
+                        <i class="mdi mdi-pill"></i>
+                        <span data-key="t-users">Médicaments</span>
+                    </a>
+                </li>
 
             </ul>
         </div>

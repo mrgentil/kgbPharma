@@ -9,7 +9,23 @@ class Medicament extends Model
 {
     use HasFactory;
 
-    public function fournisseur() {
+    protected $fillable = [
+        'nom',
+        'forme',
+        'dosage',
+        'prix_achat',
+        'prix_vente',
+        'stock',
+        'stock_min',
+        'expiration',
+        'supplier_id'
+    ];
+
+    protected $casts = [
+        'expiration' => 'date',
+    ];
+
+    public function supplier() {
         return $this->belongsTo(Supplier::class);
     }
 
@@ -19,6 +35,18 @@ class Medicament extends Model
 
     public function stocks() {
         return $this->hasMany(Stock::class);
+    }
+
+    // Vérifie si le stock est faible
+    public function isLowStock(): bool
+    {
+        return $this->stock <= $this->stock_min;
+    }
+
+    // Vérifie si le médicament est périmé
+    public function isExpired(): bool
+    {
+        return now()->greaterThan($this->expiration);
     }
 
 }
