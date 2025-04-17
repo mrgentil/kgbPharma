@@ -173,6 +173,7 @@
 
         // Gestion des filtres
         $('.filter-btn').on('click', function() {
+            console.log('Filtre cliqué:', $(this).data('filter')); // ← debug ici
             $('.filter-btn').removeClass('active');
             $(this).addClass('active');
             filterTable();

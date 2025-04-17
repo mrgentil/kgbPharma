@@ -25,15 +25,18 @@ class Medicament extends Model
         'expiration' => 'date',
     ];
 
-    public function supplier() {
+    public function supplier()
+    {
         return $this->belongsTo(Supplier::class);
     }
 
-    public function venteDetails() {
+    public function venteDetails()
+    {
         return $this->hasMany(SaleDetail::class);
     }
 
-    public function stocks() {
+    public function stocks()
+    {
         return $this->hasMany(Stock::class);
     }
 
@@ -49,4 +52,8 @@ class Medicament extends Model
         return now()->greaterThan($this->expiration);
     }
 
+    public function mouvements()
+    {
+        return $this->hasMany(HistoriqueStock::class);
+    }
 }
