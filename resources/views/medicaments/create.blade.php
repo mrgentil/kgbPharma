@@ -33,3 +33,49 @@
         </div>
     </div>
 @endsection
+@push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script>
+        const scannerContainer = document.getElementById('scanner');
+        const btnScan = document.getElementById('btn-scan');
+        const inputCode = document.getElementById('code_barre');
+
+        let scanning = false;
+
+        btnScan.addEventListener('click', () => {
+            if (!scanning) {
+                scanning = true;
+                scannerContainer.style.display = 'block';
+
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: scannerContainer,
+                        constraints: {
+                            facingMode: "environment" // ou "user" pour caméra frontale
+                        }
+                    },
+                    decoder: {
+                        readers: ["ean_reader", "code_128_reader", "upc_reader"]
+                    }
+                }, err => {
+                    if (err) return console.error(err);
+                    Quagga.start();
+                });
+
+                Quagga.onDetected(result => {
+                    inputCode.value = result.codeResult.code;
+                    Quagga.stop();
+                    scanning = false;
+                    scannerContainer.style.display = 'none';
+                });
+            } else {
+                Quagga.stop();
+                scanning = false;
+                scannerContainer.style.display = 'none';
+            }
+        });
+    </script>
+@endpush
+

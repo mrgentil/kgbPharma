@@ -18,7 +18,8 @@ class Medicament extends Model
         'stock',
         'stock_min',
         'expiration',
-        'supplier_id'
+        'supplier_id',
+        'code_barre',
     ];
 
     protected $casts = [

@@ -11,20 +11,50 @@ use App\Http\Requests\MedicamentUpdateRequest;
 
 class MedicamentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $medicaments = Medicament::with('supplier')
-            ->orderBy('nom')
-            ->paginate(10);
+        $query = Medicament::query();
 
+        if ($request->ajax()) {
+            if ($request->has('filter')) {
+                switch ($request->filter) {
+                    case 'perimes':
+                        $query->where('expiration', '<', now());
+                        break;
+                    case 'bientot_perimes':
+                        $query->whereBetween('expiration', [now(), now()->addDays(30)]);
+                        break;
+                    case 'faible_stock':
+                        $query->whereColumn('stock', '<', 'stock_min');
+                        break;
+                }
+            }
+
+            if ($request->has('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('nom', 'LIKE', "%$search%")
+                        ->orWhere('code_barre', 'LIKE', "%$search%");
+                });
+            }
+
+            $medicaments = $query->latest()->get();
+
+            return view('medicaments.partials.table', compact('medicaments'))->render();
+        }
+
+        $medicaments = $query->latest()->paginate(15);
         return view('medicaments.index', compact('medicaments'));
     }
+
 
     public function create()
     {
         $suppliers = Supplier::all();
         return view('medicaments.create', compact('suppliers'));
     }
+
+
 
     public function store(MedicamentStoreRequest $request)
     {

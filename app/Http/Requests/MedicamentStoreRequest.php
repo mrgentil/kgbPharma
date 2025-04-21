@@ -18,6 +18,7 @@ class MedicamentStoreRequest extends FormRequest
             'stock_min' => 'required|integer|min:0',
             'expiration' => 'required|date|after:today',
             'supplier_id' => 'nullable|exists:suppliers,id',
+            'code_barre' => 'nullable|string|max:255|unique:medicaments,code_barre',
         ];
     }
 }

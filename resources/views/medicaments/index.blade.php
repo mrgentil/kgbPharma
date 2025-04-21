@@ -57,7 +57,7 @@
                                     <div class="col-sm">
                                         <div class="d-flex justify-content-sm-end">
                                             <div class="search-box ms-2">
-                                                <input type="text" class="form-control" id="searchInput" placeholder="Rechercher...">
+                                                <input type="text" id="search" class="form-control" placeholder="Rechercher...">
                                                 <i class="ri-search-line search-icon"></i>
                                             </div>
                                         </div>
@@ -74,61 +74,51 @@
                                                 <th>Prix</th>
                                                 <th>Stock</th>
                                                 <th>Expiration</th>
+                                                <th>Code-barres</th>
                                                 <th>Fournisseur</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($medicaments as $medicament)
-                                            <tr class="
-                                                @if($medicament->isLowStock()) low-stock @endif
-                                                @if($medicament->isExpired()) expired @endif
-                                                @if(!$medicament->isExpired() && !$medicament->isLowStock()) valid @endif
-                                            ">
-                                                <td>{{ $medicament->nom }}</td>
-                                                <td>{{ $medicament->forme }} ({{ $medicament->dosage }})</td>
-                                                <td>
-                                                    Achat: {{ number_format($medicament->prix_achat, 2) }}<br>
-                                                    Vente: {{ number_format($medicament->prix_vente, 2) }}
-                                                </td>
-                                                <td>
-                                                    {{ $medicament->stock }}
-                                                    @if($medicament->isLowStock())
-                                                        <span class="badge bg-warning">Stock faible</span>
-                                                    @endif
-                                                </td>
-                                                <td @if($medicament->isExpired()) class="text-danger" @endif>
-                                                    {{ $medicament->expiration->format('d/m/Y') }}
-                                                    @if($medicament->isExpired())
-                                                        <span class="badge bg-danger">Périmé</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @if($medicament->supplier)
-                                                        {{ $medicament->supplier->nom }}
-                                                    @else
-                                                        <span class="text-muted">Aucun</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <div class="d-flex gap-2">
-                                                        <a href="{{ route('medicaments.edit', $medicament->id) }}"
-                                                            class="btn btn-sm btn-warning edit-btn">
-                                                            Modifier
-                                                        </a>
-                                                        <form action="{{ route('medicaments.destroy', $medicament->id) }}"
-                                                            method="POST" style="display: inline;">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit"
-                                                                class="btn btn-sm btn-danger delete-btn"
-                                                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce médicament ?')">
-                                                                Supprimer
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                            @foreach ($medicaments as $medicament)
+                                                <tr class="@if ($medicament->isLowStock()) low-stock @endif @if ($medicament->isExpired()) expired @endif @if (!$medicament->isExpired() && !$medicament->isLowStock()) valid @endif">
+                                                    <td>{{ $medicament->nom }}</td>
+                                                    <td>{{ $medicament->forme }} ({{ $medicament->dosage }})</td>
+                                                    <td>
+                                                        Achat: {{ number_format($medicament->prix_achat, 2) }}<br>
+                                                        Vente: {{ number_format($medicament->prix_vente, 2) }}
+                                                    </td>
+                                                    <td>
+                                                        {{ $medicament->stock }}
+                                                        @if ($medicament->isLowStock())
+                                                            <span class="badge bg-warning">Stock faible</span>
+                                                        @endif
+                                                    </td>
+                                                    <td @if ($medicament->isExpired()) class="text-danger" @endif>
+                                                        {{ $medicament->expiration->format('d/m/Y') }}
+                                                        @if ($medicament->isExpired())
+                                                            <span class="badge bg-danger">Périmé</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>{{ $medicament->code_barre }}</td>
+                                                    <td>
+                                                        @if ($medicament->supplier)
+                                                            {{ $medicament->supplier->nom }}
+                                                        @else
+                                                            <span class="text-muted">Aucun</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex gap-2">
+                                                            <a href="{{ route('medicaments.edit', $medicament->id) }}" class="btn btn-sm btn-warning edit-btn">Modifier</a>
+                                                            <form action="{{ route('medicaments.destroy', $medicament->id) }}" method="POST" style="display: inline;">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn btn-sm btn-danger delete-btn" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce médicament ?')">Supprimer</button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                             @endforeach
                                         </tbody>
                                     </table>
@@ -146,41 +136,73 @@
         </div>
     </div>
 </div>
-
 @endsection
 
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        function filterTable() {
-            const searchValue = $('#searchInput').val().toLowerCase();
-            const filterType = $('.filter-btn.active').data('filter') || 'all';
+    // Filtres
+    $('.filter-btn').click(function () {
+        $('.filter-btn').removeClass('active');
+        $(this).addClass('active');
+        const filter = $(this).data('filter');
+        $('#medicamentsTable tbody tr').each(function () {
+            const row = $(this);
+            if (filter === 'all') {
+                row.show();
+            } else if (!row.hasClass(filter)) {
+                row.hide();
+            } else {
+                row.show();
+            }
+        });
+    });
 
-            $('#medicamentsTable tbody tr').each(function() {
-                const textMatch = $(this).text().toLowerCase().indexOf(searchValue) > -1;
-                const matchesFilter =
-                    filterType === 'all' ||
-                    $(this).hasClass(filterType);
+    // Recherche
+    $('#search').on('keyup', function () {
+        const value = $(this).val().toLowerCase();
+        $('#medicamentsTable tbody tr').filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+        });
+    });
 
-                $(this).toggle(textMatch && matchesFilter);
-            });
+    // Soumission AJAX (si formulaire modale présent avec id "formAddMedicament")
+    $('#formAddMedicament').on('submit', function (e) {
+        e.preventDefault();
+        const form = $(this);
+        const data = form.serialize();
+
+        $.ajax({
+            url: "{{ route('medicaments.store') }}",
+            type: "POST",
+            data: data,
+            success: function (response) {
+                if (response.status === 'success') {
+                    $('#alertMessage').removeClass('d-none alert-danger').addClass('alert-success').text(response.message);
+                    form.trigger('reset');
+                    $('#addMedicamentModal').modal('hide');
+                    location.reload(); // ou reloadTableViaAjax();
+                }
+            },
+            error: function (xhr) {
+                let errors = xhr.responseJSON.errors;
+                let errorMsg = Object.values(errors).map(v => v[0]).join('<br>');
+                $('#alertMessage').removeClass('d-none alert-success').addClass('alert-danger').html(errorMsg);
+            }
+        });
+    });
+
+    // Focus automatique pour scanner USB
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('code_barre')?.focus();
+    });
+
+    // Si l'utilisateur scanne via scanner USB
+    document.getElementById('code_barre')?.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            console.log('Code scanné :', this.value);
+            // Tu peux lancer une action ici, comme une recherche automatique
         }
-
-        // Recherche en temps réel
-        $('#searchInput').on('keyup', function() {
-            filterTable();
-        });
-
-        // Gestion des filtres
-        $('.filter-btn').on('click', function() {
-            console.log('Filtre cliqué:', $(this).data('filter')); // ← debug ici
-            $('.filter-btn').removeClass('active');
-            $(this).addClass('active');
-            filterTable();
-        });
-
-        // Activer le filtre "Tous" au démarrage
-        $('.filter-btn[data-filter="all"]').addClass('active');
     });
 </script>
 @endpush

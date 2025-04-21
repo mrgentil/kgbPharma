@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\MedicamentController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\HistoriqueStockController;
+use App\Http\Controllers\SaleController;
 
 Auth::routes(['register' => false]);
 
@@ -21,8 +22,16 @@ Route::group(['middleware' => ['auth:sanctum', 'verified']], function () {
 
     // Routes Medicaments
     Route::resource('medicaments', MedicamentController::class);
+    Route::get('/medicaments/fill-from-barcode/{barcode}', [MedicamentController::class, 'fillFromBarcode']);
+
+
     // Routes Historique Stock
     Route::resource('stories', HistoriqueStockController::class);
+
+    // Routes Historique Stock
+    Route::resource('ventes', SaleController::class);
+    Route::get('ventes/historique/pdf', [SaleController::class, 'exportPDF'])->name('ventes.export.pdf');
+    Route::get('ventes/historique/excel', [SaleController::class, 'exportExcel'])->name('ventes.export.excel');
 
 
 });
